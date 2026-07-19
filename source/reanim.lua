@@ -1,20 +1,20 @@
 --[[
- ...    :::::        ::        ::        ::        ::        ::        
- ;;     ;;;;;;       ;;;       ;;;       ;;;       ;;;       ;;;       
+ ...     ::::        ::        ::        ::        ::        ::        
+ ;;      ;;;;;;      ;;;       ;;;       ;;;       ;;;       ;;;       
 [['     [[[[[[[cc,,. [[[[cc,,. [[[[cc,,. [[[[cc,,. [[[[cc,,. [[[[cc,,. 
 $$      $$$$$$"""$$$ $$$"""$$$ $$$"""$$$ $$$"""$$$ $$$"""$$$ $$$"""$$$ 
 88    .d888888   "88o888   "88o888   "88o888   "88o888   "88o888   "88o
  "YmmMMMM""MMM    YMMMMM    YMMMMM    YMMMMM    YMMMMM    YMMMMM    YMM
        "DREAMS WILL NEVER COME TRUE UNTIL YOU ACTUALLY MAKE IT."       
 
-       Code:    STEVETHEREALONE
-                BoredGal (mostly patches..)
-       GFX:     STEVETHEREALONE
-                AALib
-                some random generators
-       Music:   Dubmood
-                4mat
-                MASTER BOOT RECORD
+       Code:     STEVETHEREALONE
+                 BoredGal (mostly patches..)
+       GFX:      STEVETHEREALONE
+                 AALib
+                 some random generators
+       Music:    Dubmood
+                 4mat
+                 MASTER BOOT RECORD
 
 Thou shalth not steal. Point at this source if you used a snippet here.
 ]]
@@ -42,29 +42,29 @@ local ContextActionService = cloneref(game:GetService("ContextActionService"))
 local Util = {}
 
 Util.RandomString = function(length)
-	length = length or math.random(32, 256)
-	local str = ""
-	for _=1, length do
-		str ..= string.char(math.random(32, 126))
-	end
-	return str
+    length = length or math.random(32, 256)
+    local str = ""
+    for _=1, length do
+        str ..= string.char(math.random(32, 126))
+    end
+    return str
 end
 Util.DeepcopyTable = function(t)
-	local c = {}
-	for k, v in pairs(t) do
-		if type(v) == "table" then
-			v = Util.DeepcopyTable(v)
-		end
-		c[k] = v
-	end
-	return c
+    local c = {}
+    for k, v in pairs(t) do
+        if type(v) == "table" then
+            v = Util.DeepcopyTable(v)
+        end
+        c[k] = v
+    end
+    return c
 end
 Util.Notify = function(text)
-	StarterGui:SetCore("SendNotification", {
-		Title = "Uhhhhhh",
-		Text = text,
-		Duration = 5
-	})
+    StarterGui:SetCore("SendNotification", {
+        Title = "Uhhhhhh",
+        Text = text,
+        Duration = 5
+    })
 end
 
 cloneref = cloneref or function(o) return o end
@@ -72,116 +72,137 @@ getcustomasset = getcustomasset or getsynasset
 gethiddengui = get_hidden_gui or gethui
 request = request or (http and http.request)
 
+-- ==========================================
+--  WEBARRAY / UNC COMPATIBILITY FOR VOLT
+-- ==========================================
+local baseWebSocket = WebSocket or websocket[cite: 1]
+if baseWebSocket then
+    WebSocket = baseWebSocket
+    websocket = baseWebSocket
+
+    -- Krnl structure alias
+    if not krnl then krnl = {} end
+    if type(krnl) == "table" and not krnl.websocket then
+        krnl.websocket = baseWebSocket
+    end
+
+    -- Synapse structure alias
+    if not syn then syn = {} end
+    if type(syn) == "table" and not syn.websocket then
+        syn.websocket = baseWebSocket
+    end
+end
+-- ==========================================
+
 local function ismissing(func)
-	return not func or type(func) ~= "function"
+    return not func or type(func) ~= "function"
 end
 do
-	local function diefatal(msg)
-		Util.Notify("Executor not supported. " .. msg)
-		_G.UhhhhhhLoaded = nil
-		error("fatal error cant start")
-	end
-	if ismissing(request) then
-		diefatal("Missing `request` or `http.request` function!")
-	end
-	if ismissing(getcustomasset) then
-		diefatal("Missing `getcustomasset` or `getsynasset` function!")
-	end
-	if ismissing(readfile)
-		or ismissing(writefile)
-		or ismissing(delfile)
-		or ismissing(isfile)
-		or ismissing(isfolder)
-		or ismissing(makefolder)
-		or ismissing(listfiles) then
-		diefatal("Missing some filesystem functions!")
-	end
-	if ismissing(firetouchinterest) then
-		diefatal("Missing `firetouchinterest` function!")
-	end
-	--if ismissing(replicatesignal) then
-	--	diefatal("Missing `replicatesignal` function!")
-	--end
-	if ismissing(gethiddenproperty) then
-		if ismissing(setscriptable) then
-			diefatal("Missing `gethiddenproperty` and `setscriptable` function!")
-		elseif ismissing(isscriptable) then
-			gethiddenproperty = function(inst, prop, val)
-				setscriptable(inst, prop, true)
-				local val = inst[prop]
-				setscriptable(inst, prop, false)
-				return val
-			end
-		else
-			gethiddenproperty = function(inst, prop, val)
-				local was = isscriptable(inst, prop)
-				if not was then setscriptable(inst, prop, true) end
-				local val = inst[prop]
-				if not was then setscriptable(inst, prop, false) end
-				return val
-			end
-		end
-	end
-	if ismissing(sethiddenproperty) then
-		if ismissing(setscriptable) then
-			diefatal("Missing `sethiddenproperty` and `setscriptable` function!")
-		elseif ismissing(isscriptable) then
-			sethiddenproperty = function(inst, prop, val)
-				setscriptable(inst, prop, true)
-				inst[prop] = val
-				setscriptable(inst, prop, false)
-			end
-		else
-			gethiddenproperty = function(inst, prop, val)
-				local was = isscriptable(inst, prop)
-				if not was then setscriptable(inst, prop, true) end
-				inst[prop] = val
-				if not was then setscriptable(inst, prop, false) end
-			end
-		end
-	end
-	--if ismissing(hookmetamethod) or ismissing(hookfunction) then
-	--	diefatal("Missing `hookmetamethod` and `hookfunction` function!")
-	--end
-	local loadstringreturn = false
-	local val = math.random(-65536, 65536)
-	local _, func = pcall(loadstring, "return " .. val)
-	if func then
-		local s, val2 = pcall(func)
-		if s and val == val2 then
-			loadstringreturn = true
-		end
-	end
-	if not loadstringreturn then
-		diefatal("`loadstring` makes a function that does not return values!")
-	end
-	if not ismissing(isfile) then
-		local s, e = pcall(isfile, Util.RandomString(32))
-		if s and e then
-			-- stupid executor
-			isfile = function(path)
-				local s, e = pcall(readfile, path)
-				return not not (s and e)
-			end
-		end
-	else
-		-- THIS LITERALLY SHOULDNT HAPPEN
-		diefatal("T-this one shouldn't happen!")
-	end
+    local function diefatal(msg)
+        Util.Notify("Executor not supported. " .. msg)
+        _G.UhhhhhhLoaded = nil
+        error("fatal error cant start")
+    end
+    if ismissing(request) then
+        diefatal("Missing `request` or `http.request` function!")
+    end
+    if ismissing(getcustomasset) then
+        diefatal("Missing `getcustomasset` or `getsynasset` function!")
+    end
+    if ismissing(readfile)
+        or ismissing(writefile)
+        or ismissing(delfile)
+        or ismissing(isfile)
+        or ismissing(isfolder)
+        or ismissing(makefolder)
+        or ismissing(listfiles) then
+        diefatal("Missing some filesystem functions!")
+    end
+    if ismissing(firetouchinterest) then
+        diefatal("Missing `firetouchinterest` function!")
+    end
+    --if ismissing(replicatesignal) then
+    --    diefatal("Missing `replicatesignal` function!")
+    --end
+    if ismissing(gethiddenproperty) then
+        if ismissing(setscriptable) then
+            diefatal("Missing `gethiddenproperty` and `setscriptable` function!")
+        elseif ismissing(isscriptable) then
+            gethiddenproperty = function(inst, prop, val)
+                setscriptable(inst, prop, true)
+                local val = inst[prop]
+                setscriptable(inst, prop, false)
+                return val
+            end
+        else
+            gethiddenproperty = function(inst, prop, val)
+                local was = isscriptable(inst, prop)
+                if not was then setscriptable(inst, prop, true) end
+                local val = inst[prop]
+                if not was then setscriptable(inst, prop, false) end
+                return val
+            end
+        end
+    end
+    if ismissing(sethiddenproperty) then
+        if ismissing(setscriptable) then
+            diefatal("Missing `sethiddenproperty` and `setscriptable` function!")
+        elseif ismissing(isscriptable) then
+            sethiddenproperty = function(inst, prop, val)
+                setscriptable(inst, prop, true)
+                inst[prop] = val
+                setscriptable(inst, prop, false)
+            end
+        else
+            gethiddenproperty = function(inst, prop, val)
+                local was = isscriptable(inst, prop)
+                if not was then setscriptable(inst, prop, true) end
+                inst[prop] = val
+                if not was then setscriptable(inst, prop, false) end
+            end
+        end
+    end
+    --if ismissing(hookmetamethod) or ismissing(hookfunction) then
+    --    diefatal("Missing `hookmetamethod` and `hookfunction` function!")
+    --end
+    local loadstringreturn = false
+    local val = math.random(-65536, 65536)
+    local _, func = pcall(loadstring, "return " .. val)
+    if func then
+        local s, val2 = pcall(func)
+        if s and val == val2 then
+            loadstringreturn = true
+        end
+    end
+    if not loadstringreturn then
+        diefatal("`loadstring` makes a function that does not return values!")
+    end
+    if not ismissing(isfile) then
+        local s, e = pcall(isfile, Util.RandomString(32))
+        if s and e then
+            -- stupid executor
+            isfile = function(path)
+                local s, e = pcall(readfile, path)
+                return not not (s and e)
+            end
+        end
+    else
+        -- THIS LITERALLY SHOULDNT HAPPEN
+        diefatal("T-this one shouldn't happen!")
+    end
 end
 
 -- WILL THIS FIX CRASHES IDK ????????
 local pcall = function(func, ...)
-	return pcall(function(...)
-		return func(...)
-	end, ...)
+    return pcall(function(...)
+        return func(...)
+    end, ...)
 end
 local xpcall = function(func, ...)
-	return xpcall(function(...)
-		return func(...)
-	end, ...)
+    return xpcall(function(...)
+        return func(...)
+    end, ...)
 end
-local b_getfenv = getfenv
 
 local Player = Players.LocalPlayer
 
